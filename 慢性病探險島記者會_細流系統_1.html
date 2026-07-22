@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>慢性病探險島記者會｜細流指揮系統 v2</title>
+<style>
+/* ==== 樣式全部限定在 #xlApp 底下，避免污染 ==== */
+#xlApp{--c-main:#1a3a5c;--c-accent:#e8842c;--c-bg:#f5f6f8;--c-card:#ffffff;--c-line:#dde2e8;--c-warn:#c0392b;
+  --c-min:#ffe94d;--c-gov:#8ee7f2;--c-photo:#e8842c;
+  font-family:"Microsoft JhengHei","PingFang TC",system-ui,sans-serif;background:var(--c-bg);color:#222;min-height:100vh;margin:0;padding:0 0 80px;}
+#xlApp *{box-sizing:border-box;}
+#xlApp .xl-header{background:var(--c-main);color:#fff;padding:14px 16px 10px;position:sticky;top:0;z-index:20;box-shadow:0 2px 6px rgba(0,0,0,.2);}
+#xlApp .xl-header h1{font-size:16px;margin:0 0 2px;font-weight:700;}
+#xlApp .xl-header .xl-sub{font-size:11px;opacity:.85;}
+#xlApp .xl-modebar{display:flex;gap:8px;margin-top:10px;}
+#xlApp .xl-modebar button{flex:1;padding:9px 0;border:none;border-radius:8px;font-size:14px;font-weight:700;background:rgba(255,255,255,.15);color:#fff;cursor:pointer;}
+#xlApp .xl-modebar button.xl-on{background:var(--c-accent);}
+#xlApp .xl-chips{display:flex;gap:6px;overflow-x:auto;padding:10px 12px;background:#fff;border-bottom:1px solid var(--c-line);position:sticky;top:88px;z-index:19;-webkit-overflow-scrolling:touch;}
+#xlApp .xl-chips::-webkit-scrollbar{display:none;}
+#xlApp .xl-chip{flex:0 0 auto;padding:7px 13px;border-radius:999px;border:1.5px solid var(--c-line);background:#fff;font-size:13px;cursor:pointer;white-space:nowrap;}
+#xlApp .xl-chip.xl-c-min{background:#fff9d6;border-color:#e8d44d;}
+#xlApp .xl-chip.xl-c-gov{background:#e2f8fb;border-color:#8ed4e0;}
+#xlApp .xl-chip.xl-on{background:var(--c-main)!important;border-color:var(--c-main)!important;color:#fff;font-weight:700;}
+#xlApp .xl-chip.xl-photo-chip{border-color:var(--c-photo);}
+#xlApp .xl-divider{flex:0 0 auto;align-self:center;font-size:11px;color:#aaa;padding:0 2px;}
+#xlApp .xl-wrap{padding:12px;max-width:760px;margin:0 auto;}
+#xlApp .xl-slot{background:var(--c-card);border:1px solid var(--c-line);border-radius:12px;margin-bottom:12px;overflow:hidden;}
+#xlApp .xl-slot.xl-isphoto{border:2px solid var(--c-photo);box-shadow:0 0 0 3px rgba(232,132,44,.15);}
+#xlApp .xl-slot-h{display:flex;align-items:center;gap:8px;padding:10px 12px;background:#eef2f7;border-bottom:1px solid var(--c-line);flex-wrap:wrap;}
+#xlApp .xl-slot.xl-isphoto .xl-slot-h{background:#fdeedd;}
+#xlApp .xl-slot-h .xl-time{font-weight:800;color:var(--c-main);font-size:14px;}
+#xlApp .xl-slot-h .xl-title{font-size:14px;font-weight:700;}
+#xlApp .xl-badge-photo{font-size:11px;background:var(--c-photo);color:#fff;border-radius:5px;padding:2px 7px;font-weight:700;}
+#xlApp .xl-sect{padding:5px 12px 3px;font-size:11px;font-weight:800;color:#888;background:#fafbfc;border-bottom:1px solid #f0f2f5;}
+#xlApp .xl-sect.xl-s-min{color:#9c8500;background:#fffbe6;}
+#xlApp .xl-sect.xl-s-gov{color:#22798a;background:#eefafc;}
+#xlApp .xl-task{display:flex;gap:8px;padding:8px 12px;border-bottom:1px dashed #e8ebef;align-items:flex-start;}
+#xlApp .xl-task:last-child{border-bottom:none;}
+#xlApp .xl-task .xl-who{flex:0 0 62px;font-weight:700;font-size:13px;padding-top:1px;}
+#xlApp .xl-task .xl-who span{padding:1px 4px;border-radius:3px;}
+#xlApp .xl-task .xl-what{flex:1;font-size:13px;line-height:1.55;}
+#xlApp .xl-task.xl-edited .xl-what::after{content:"（已更動）";color:var(--c-warn);font-size:11px;font-weight:700;}
+#xlApp .xl-task .xl-editbtn{flex:0 0 auto;border:1px solid var(--c-line);background:#fff;border-radius:6px;font-size:11px;padding:3px 8px;cursor:pointer;color:#666;display:none;}
+#xlApp.xl-editing .xl-task .xl-editbtn{display:block;}
+#xlApp .xl-nm-min{background:var(--c-min);border-radius:2px;padding:0 1px;}
+#xlApp .xl-nm-gov{background:var(--c-gov);border-radius:2px;padding:0 1px;}
+#xlApp .xl-note{padding:6px 12px;font-size:11.5px;color:#8a6d1a;background:#fdf7e3;line-height:1.5;}
+#xlApp .xl-pcard{background:var(--c-card);border:1px solid var(--c-line);border-radius:12px;margin-bottom:12px;padding:12px;}
+#xlApp .xl-pcard .xl-pname{font-size:17px;font-weight:800;color:var(--c-main);display:inline-block;padding:1px 6px;border-radius:4px;}
+#xlApp .xl-pcard .xl-pname.xl-t-min{background:var(--c-min);}
+#xlApp .xl-pcard .xl-pname.xl-t-gov{background:var(--c-gov);}
+#xlApp .xl-pcard .xl-prole{font-size:12px;color:#777;margin:4px 0 8px;}
+#xlApp .xl-prow{display:flex;gap:10px;padding:8px 0;border-bottom:1px dashed #e8ebef;}
+#xlApp .xl-prow:last-child{border-bottom:none;}
+#xlApp .xl-prow.xl-isphoto{border-left:4px solid var(--c-photo);padding-left:8px;background:#fff9f2;}
+#xlApp .xl-prow .xl-ptime{flex:0 0 84px;font-size:12px;font-weight:700;color:var(--c-accent);}
+#xlApp .xl-prow .xl-ptxt{flex:1;font-size:13px;line-height:1.55;}
+#xlApp .xl-prow .xl-ptxt .xl-pslot{color:#999;font-size:11px;margin-top:1px;}
+#xlApp .xl-prow .xl-ptxt .xl-mate{font-size:11px;color:#777;margin-top:3px;line-height:1.7;}
+#xlApp .xl-prow .xl-ptxt .xl-watch{color:#8a8a8a;font-style:italic;}
+#xlApp .xl-prow .xl-ptxt .xl-watch b{color:#b0791f;font-style:normal;}
+#xlApp .xl-toolbar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--c-line);display:flex;gap:8px;padding:10px 12px;z-index:30;max-width:760px;margin:0 auto;}
+#xlApp .xl-toolbar button{flex:1;padding:10px 0;border-radius:8px;border:1.5px solid var(--c-main);background:#fff;color:var(--c-main);font-size:13px;font-weight:700;cursor:pointer;}
+#xlApp .xl-toolbar button.xl-primary{background:var(--c-main);color:#fff;}
+#xlApp .xl-mask{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:40;display:none;align-items:flex-end;justify-content:center;}
+#xlApp .xl-mask.xl-show{display:flex;}
+#xlApp .xl-modal{background:#fff;border-radius:14px 14px 0 0;width:100%;max-width:760px;padding:16px;max-height:85vh;overflow:auto;}
+#xlApp .xl-modal h3{margin:0 0 10px;font-size:15px;color:var(--c-main);}
+#xlApp .xl-modal label{display:block;font-size:12px;color:#666;margin:10px 0 4px;}
+#xlApp .xl-modal select,#xlApp .xl-modal textarea{width:100%;padding:9px;border:1.5px solid var(--c-line);border-radius:8px;font-size:14px;font-family:inherit;}
+#xlApp .xl-modal textarea{min-height:72px;resize:vertical;}
+#xlApp .xl-modal .xl-mbtns{display:flex;gap:8px;margin-top:14px;}
+#xlApp .xl-modal .xl-mbtns button{flex:1;padding:11px 0;border-radius:8px;font-size:14px;font-weight:700;border:1.5px solid var(--c-line);background:#fff;cursor:pointer;}
+#xlApp .xl-modal .xl-mbtns .xl-save{background:var(--c-accent);border-color:var(--c-accent);color:#fff;}
+#xlApp .xl-modal .xl-mbtns .xl-del{border-color:var(--c-warn);color:var(--c-warn);}
+#xlApp .xl-log{background:#fff;border:1px solid var(--c-line);border-radius:12px;padding:12px;margin-bottom:12px;}
+#xlApp .xl-log h3{margin:0 0 8px;font-size:14px;color:var(--c-main);}
+#xlApp .xl-log .xl-logitem{font-size:12px;line-height:1.6;border-bottom:1px dashed #e8ebef;padding:4px 0;}
+#xlApp .xl-log .xl-logitem b{color:var(--c-warn);}
+#xlApp .xl-empty{text-align:center;color:#999;font-size:13px;padding:30px 0;}
+#xlApp .xl-io{width:100%;min-height:120px;font-size:11px;font-family:monospace;border:1.5px solid var(--c-line);border-radius:8px;padding:8px;}
+#xlApp .xl-hint{font-size:11.5px;color:#888;line-height:1.6;margin-top:6px;}
+@media(min-width:600px){#xlApp .xl-header h1{font-size:18px;}}
+</style>
+</head>
+<body>
+<div id="xlApp">
+  <div class="xl-header">
+    <h1>慢性病探險島：互動體驗展｜開展記者會 細流系統</h1>
+    <div class="xl-sub">115.07.24（五）09:00–10:00｜新竹市鐵道藝術村｜<span style="background:#ffe94d;color:#333;padding:0 3px;border-radius:2px;">敏逆</span>＋<span style="background:#8ee7f2;color:#333;padding:0 3px;border-radius:2px;">衛生局</span> 共用版</div>
+    <div class="xl-modebar">
+      <button id="xlModeSlot" class="xl-on">依時段看</button>
+      <button id="xlModePerson">依人員看</button>
+      <button id="xlModeLog">變更紀錄</button>
+    </div>
+  </div>
+  <div class="xl-chips" id="xlChips"></div>
+  <div class="xl-wrap" id="xlMain"></div>
+
+  <div class="xl-toolbar">
+    <button id="xlBtnEdit">✎ 進入編輯</button>
+    <button id="xlBtnReport" class="xl-primary">產生變更通報</button>
+    <button id="xlBtnIO">備份/還原</button>
+  </div>
+
+  <div class="xl-mask" id="xlMask">
+    <div class="xl-modal" id="xlModal"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+/* ================= 資料區：要改班表改這裡 ================= */
+var PEOPLE=[
+ {n:'慧龍',r:'總指揮／場控（全場流程掌控、衛生局窗口對接）',tm:'min'},
+ {n:'立丞',r:'副指揮（貼身支援總指揮、跨組補位）',tm:'min'},
+ {n:'慧萍',r:'舞台組長（主持人對接、舞台區與道具上下）',tm:'min'},
+ {n:'建哲',r:'舞台組（音控播放、講台與道具支援）',tm:'min'},
+ {n:'一心',r:'機動組長（現場引導、活動前事務）',tm:'min'},
+ {n:'阿賢',r:'機動組（引導、合影隊形、支援禮品包裝）',tm:'min'},
+ {n:'疑雲',r:'機動組（引導、合影隊形、支援禮品包裝）',tm:'min'},
+ {n:'小汶',r:'報到組（民眾與院所報到、與衛生局對接現場事務）',tm:'min'},
+ {n:'文綺',r:'主持人（08:20 到場彩排）',tm:'min'},
+ {n:'穎綺',r:'衛生局｜機動、踩點窗口',tm:'gov'},
+ {n:'庭安',r:'衛生局｜機動、踩點窗口',tm:'gov'},
+ {n:'育婷',r:'衛生局｜報到區簽到及餐盒發放',tm:'gov'},
+ {n:'雉媛',r:'衛生局｜報到區簽到、餐盒簽收',tm:'gov'},
+ {n:'美媛',r:'衛生局｜報到區簽到及餐盒發放',tm:'gov'},
+ {n:'于玲',r:'衛生局｜禮品包裝',tm:'gov'},
+ {n:'秋蓉',r:'衛生局｜座位區引導',tm:'gov'},
+ {n:'婕寜',r:'衛生局｜座位區引導',tm:'gov'},
+ {n:'詩祺',r:'衛生局｜遞名條',tm:'gov'},
+ {n:'蘊洳',r:'衛生局｜引導受獎者、貴賓上台',tm:'gov'},
+ {n:'筑菁',r:'衛生局｜引導表演團體、貴賓上台',tm:'gov'},
+ {n:'嘉鈞',r:'衛生局｜講台、啟動儀式道具',tm:'gov'},
+ {n:'翊榕',r:'衛生局｜講台、啟動儀式道具',tm:'gov'},
+ {n:'佩玟',r:'衛生局｜遞/收麥克風、遞啟動道具',tm:'gov'},
+ {n:'珮綺',r:'衛生局｜手拿板、遞啟動道具',tm:'gov'},
+ {n:'嫙雅',r:'衛生局｜手拿板',tm:'gov'},
+ {n:'盈如',r:'衛生局｜手拿板',tm:'gov'},
+ {n:'欣妤',r:'衛生局｜手拿板',tm:'gov'},
+ {n:'喬甯',r:'衛生局｜遞獎狀',tm:'gov'},
+ {n:'絹桂',r:'衛生局｜遞獎狀',tm:'gov'}
+];
+/* photo:true = 合影／拍照重點時段 */
+var SLOTS=[
+ {id:'A',t:'07:30-08:00',title:'敏逆集合總檢',note:'對講機：慧龍、立丞、慧萍、一心',
+  watch:'陪同總檢，熟悉當天自己的動線與器材位置'},
+ {id:'B',t:'08:00-08:30',title:'場地佈置',note:'餐盒 09:00 送達共 150 份｜手拿板由衛生局慢病組準備｜小汶發放衛生局ㄤ仔標胸章',
+  watch:'確認自己負責區域備品到齊，缺漏立刻回報穎綺／慧龍'},
+ {id:'C',t:'08:30-09:00',title:'彩排',note:'主持人文綺 08:20 到場',
+  watch:'跟看一次全流程彩排，記住自己上場前的 cue 點與站位'},
+ {id:'D',t:'09:00-09:30',title:'簽到',note:'簽到處提供展覽三折頁DM、ㄤ仔標給貴賓｜衛生局安排兩位同仁門口引導停車',
+  watch:'留意媒體架機位置與提早抵達的貴賓，隨時支援引導'},
+ {id:'E',t:'09:30-09:32',title:'活動開場／市長抵達',note:'',
+  watch:'保持動線淨空、手機靜音、避開攝影範圍'},
+ {id:'F',t:'09:32-09:35',title:'座位區合影',photo:'合影',note:'若台下民眾少，工作人員脫背心一起入鏡｜筑菁請科園隊伍準備上台',
+  watch:'背心工作人員先退出鏡頭範圍；被 cue 脫背心入鏡就補位'},
+ {id:'G',t:'09:35-09:40',title:'開場表演＋市長合影',photo:'合影',note:'',
+  watch:'留意觀眾席秩序，同時確認下一環節（致詞、頒獎）道具就緒'},
+ {id:'H',t:'09:40-09:45',title:'市長致詞',note:'',
+  watch:'保持會場安靜，預想致詞結束後的頒獎動線'},
+ {id:'I',t:'09:45-09:50',title:'市長、局長頒獎',note:'珮綺、佩玟收完麥克風後準備啟動儀式道具',
+  watch:'留意授獎者順序與台前淨空，下一棒是啟動儀式'},
+ {id:'J',t:'09:50-09:52',title:'啟動儀式',photo:'照片1',note:'遞道具人員佩戴白手套｜邀醫師公會理事長陳志宏＋院所貴賓共七位上台',
+  watch:'舞台徹底淨空、別擋攝影視線，留意火山效果觸發瞬間'},
+ {id:'K',t:'09:52-09:55',title:'全體合影（手拿板）',photo:'照片2、3',note:'貴賓上台期間珮綺收魔法杖｜站定點後再遞手拿板',
+  watch:'協助未上台貴賓留在座位、保持台前攝影區淨空'},
+ {id:'L',t:'09:55-10:00',title:'媒體聯訪',note:'聯訪前預留 5 分鐘讓市長整理儀容或與貴賓寒暄（已告知文綺）',
+  watch:'留意媒體採訪範圍，開始收整自己負責的區域'},
+ {id:'M',t:'10:00-',title:'市長離開／展覽開始・場復',note:'密室脫逃開放場次依展覽營運排程',
+  watch:'支援展區人流引導與記者會區場復'}
+];
+var TASKS=[
+ /* A 07:30-08:00 */
+ {s:'A',p:'慧龍',x:'帶全員跑細流一次、確認對講機與各組回報'},
+ {s:'A',p:'慧萍',x:'啟動道具巡檢、火山機關試效果（與建哲）'},
+ {s:'A',p:'建哲',x:'火山機關試效果；音響開機測試、麥克風電池更換'},
+ {s:'A',p:'一心',x:'帶機動組做展區、密室脫逃最終巡檢'},
+ {s:'A',p:'立丞',x:'與一心巡檢展區、密室；隨行總指揮'},
+ {s:'A',p:'阿賢',x:'展區、密室巡檢（跟一心）'},
+ {s:'A',p:'疑雲',x:'展區、密室巡檢（跟一心）'},
+ {s:'A',p:'小汶',x:'報到動線與桌面確認'},
+ /* B 08:00-08:30 */
+ {s:'B',p:'慧龍',x:'與衛生局窗口對接、掌握場佈總進度'},
+ {s:'B',p:'立丞',x:'支援場佈調度、盯科園隊伍 08:15 抵達'},
+ {s:'B',p:'慧萍',x:'講台、火山道具就位（協同嘉鈞、翊榕）；帶頒獎區獎狀確認、帶舞台區手拿板與談參本確認；金獎作品場佈確認（與建哲）'},
+ {s:'B',p:'建哲',x:'講台、火山道具就位；科園表演音檔對檔試放；金獎作品場佈確認（與慧萍）'},
+ {s:'B',p:'一心',x:'帶座位區貼座位牌（秋蓉、婕寜執行）；帶表演隊伍接待（筑菁執行）'},
+ {s:'B',p:'阿賢',x:'禮品包裝支援（配合小汶、于玲）'},
+ {s:'B',p:'疑雲',x:'禮品包裝支援（配合小汶、于玲）'},
+ {s:'B',p:'小汶',x:'禮品包裝（與于玲）；發放衛生局ㄤ仔標胸章'},
+ {s:'B',p:'育婷',x:'報到區備品確認：簽到單、三折頁DM、名條、新聞稿'},
+ {s:'B',p:'雉媛',x:'報到區備品確認；餐盒簽收（拿收據）'},
+ {s:'B',p:'美媛',x:'報到區備品確認：簽到單、三折頁DM、名條、新聞稿'},
+ {s:'B',p:'于玲',x:'禮品包裝：提袋×1＋餐點×1＋桌曆×1（小汶、阿賢、疑雲支援）'},
+ {s:'B',p:'秋蓉',x:'座位區椅背貼座位牌（一心帶）'},
+ {s:'B',p:'婕寜',x:'座位區椅背貼座位牌（一心帶）'},
+ {s:'B',p:'喬甯',x:'頒獎區獎狀與遞獎流程確認（慧萍帶）'},
+ {s:'B',p:'絹桂',x:'頒獎區獎狀與遞獎流程確認（慧萍帶）'},
+ {s:'B',p:'珮綺',x:'舞台區手拿板、談參本確認（慧萍帶）'},
+ {s:'B',p:'嫙雅',x:'舞台區手拿板確認（慧萍帶）'},
+ {s:'B',p:'盈如',x:'舞台區手拿板確認（慧萍帶）'},
+ {s:'B',p:'欣妤',x:'舞台區手拿板確認（慧萍帶）'},
+ {s:'B',p:'筑菁',x:'科園隊伍接待：領清冊含費用、餐盒＋禮品×12、彩排安排（一心帶）'},
+ {s:'B',p:'嘉鈞',x:'講台、火山道具就位（敏逆舞台組主責）'},
+ {s:'B',p:'翊榕',x:'講台、火山道具就位（敏逆舞台組主責）'},
+ /* C 08:30-09:00 彩排 */
+ {s:'C',p:'文綺',x:'08:20 到場，全流程彩排、確認站位與口播'},
+ {s:'C',p:'慧萍',x:'與文綺對流程、確認各段 cue 點與麥克風交接；帶站位確認（與立丞）；啟動道具動線與效果測試（與建哲）'},
+ {s:'C',p:'立丞',x:'帶站位確認（含頒獎環節）、攝影拍照需求、貼定位點（穎綺、庭安協同）'},
+ {s:'C',p:'建哲',x:'啟動道具效果測試；開場表演走位與音檔測試'},
+ {s:'C',p:'一心',x:'走一次引導與合影隊形動線'},
+ {s:'C',p:'慧龍',x:'總看彩排、拍板修正點'},
+ {s:'C',p:'穎綺',x:'協同確認站位、攝影需求、定位點（慧萍、立丞帶）'},
+ {s:'C',p:'庭安',x:'協同確認站位、攝影需求、定位點（慧萍、立丞帶）'},
+ /* D 09:00-09:30 簽到 */
+ {s:'D',p:'小汶',x:'民眾與院所報到'},
+ {s:'D',p:'一心',x:'帶阿賢、疑雲入場動線引導、支援就座'},
+ {s:'D',p:'阿賢',x:'引導支援；展區 stand-by、管制未開放區域'},
+ {s:'D',p:'疑雲',x:'引導支援；展區 stand-by、管制未開放區域'},
+ {s:'D',p:'立丞',x:'確認遞名條狀況'},
+ {s:'D',p:'慧龍',x:'全場控、掌握市長抵達情報'},
+ {s:'D',p:'慧萍',x:'舞台側就位、與文綺最後確認'},
+ {s:'D',p:'建哲',x:'音控台就位、播背景音樂'},
+ {s:'D',p:'文綺',x:'站位準備、開場詞最後確認'},
+ {s:'D',p:'育婷',x:'貴賓簽到'},
+ {s:'D',p:'雉媛',x:'貴賓簽到'},
+ {s:'D',p:'美媛',x:'貴賓簽到'},
+ {s:'D',p:'秋蓉',x:'指引貴賓入座'},
+ {s:'D',p:'婕寜',x:'指引貴賓入座'},
+ {s:'D',p:'蘊洳',x:'指引授獎者入座'},
+ {s:'D',p:'詩祺',x:'遞名條（立丞確認狀況）'},
+ /* E 09:30-09:32 */
+ {s:'E',p:'文綺',x:'開場，介紹活動與貴賓'},
+ {s:'E',p:'慧萍',x:'側台 cue 主持人'},
+ {s:'E',p:'建哲',x:'開場音樂收、麥克風開'},
+ {s:'E',p:'一心',x:'帶機動組引導就座收尾、關閉走動動線'},
+ {s:'E',p:'慧龍',x:'全場控'},
+ {s:'E',p:'立丞',x:'機動待命'},
+ {s:'E',p:'小汶',x:'報到收尾、晚到接待'},
+ {s:'E',p:'穎綺',x:'與局長、科長於入口迎接市長'},
+ /* F 09:32-09:35 座位區合影 📸 */
+ {s:'F',p:'一心',x:'帶機動組協助合影隊形與攝影動線'},
+ {s:'F',p:'阿賢',x:'協助合影隊形'},
+ {s:'F',p:'疑雲',x:'協助合影隊形'},
+ {s:'F',p:'文綺',x:'口播引導市長與台下貴賓持手拿板合影'},
+ {s:'F',p:'珮綺',x:'遞手拿板'},
+ {s:'F',p:'嫙雅',x:'遞手拿板'},
+ {s:'F',p:'盈如',x:'遞手拿板'},
+ {s:'F',p:'欣妤',x:'遞手拿板'},
+ {s:'F',p:'筑菁',x:'請科園隊伍準備上台'},
+ /* G 09:35-09:40 表演＋市長合影 📸 */
+ {s:'G',p:'建哲',x:'表演音檔播放與音量控制'},
+ {s:'G',p:'慧萍',x:'舞台側 stand-by'},
+ {s:'G',p:'文綺',x:'報幕、介紹科園社區發展協會；cue 市長與表演隊伍合影'},
+ {s:'G',p:'蘊洳',x:'表演結束後請授獎者於舞台右側準備'},
+ /* H 09:40-09:45 致詞 */
+ {s:'H',p:'慧萍',x:'講台與麥克風狀態確認'},
+ {s:'H',p:'建哲',x:'搬講台支援'},
+ {s:'H',p:'文綺',x:'邀請市長致詞'},
+ {s:'H',p:'嘉鈞',x:'搬/收講台'},
+ {s:'H',p:'翊榕',x:'搬/收講台'},
+ {s:'H',p:'佩玟',x:'遞/收麥克風'},
+ /* I 09:45-09:50 頒獎 */
+ {s:'I',p:'建哲',x:'同步確認啟動道具（火山）就位'},
+ {s:'I',p:'文綺',x:'主持頒獎、邀請局長上台'},
+ {s:'I',p:'蘊洳',x:'引導授獎者上台'},
+ {s:'I',p:'喬甯',x:'遞獎狀'},
+ {s:'I',p:'絹桂',x:'遞獎狀'},
+ {s:'I',p:'珮綺',x:'收完麥克風後準備啟動儀式道具'},
+ {s:'I',p:'佩玟',x:'收完麥克風後準備啟動儀式道具'},
+ /* J 09:50-09:52 啟動儀式 📸照片1 */
+ {s:'J',p:'建哲',x:'啟動道具最終確認、火山效果觸發操作'},
+ {s:'J',p:'慧萍',x:'舞台側待命、排除道具突發'},
+ {s:'J',p:'文綺',x:'邀市長、局長移至道具兩旁＋陳志宏等七位上台；cue 合影（照片1）'},
+ {s:'J',p:'佩玟',x:'遞魔法杖給市長（佩戴白手套）'},
+ {s:'J',p:'珮綺',x:'遞魔法杖給局長及貴賓（佩戴白手套）'},
+ /* K 09:52-09:55 全體合影 📸照片2、3 */
+ {s:'K',p:'阿賢',x:'協助台上排位與台下攝影動線'},
+ {s:'K',p:'疑雲',x:'協助台上排位與台下攝影動線'},
+ {s:'K',p:'文綺',x:'cue 合影批次：照片2 院所貴賓／照片3 加議員里長'},
+ {s:'K',p:'蘊洳',x:'引導貴賓上台'},
+ {s:'K',p:'筑菁',x:'引導貴賓上台'},
+ {s:'K',p:'珮綺',x:'遞手拿板（市長、局長）；收啟動道具魔法杖'},
+ {s:'K',p:'嫙雅',x:'遞手拿板（貴賓、里長）'},
+ {s:'K',p:'盈如',x:'遞手拿板（貴賓、里長）'},
+ {s:'K',p:'欣妤',x:'遞手拿板（貴賓、里長）'},
+ /* L 09:55-10:00 媒體聯訪 */
+ {s:'L',p:'慧龍',x:'陪同媒體聯訪動線'},
+ {s:'L',p:'建哲',x:'撤啟動儀式道具、歸位'},
+ {s:'L',p:'小汶',x:'報到區入口管制'},
+ {s:'L',p:'文綺',x:'聯訪主持收尾'},
+ {s:'L',p:'育婷',x:'發放禮袋餐盒'},
+ {s:'L',p:'雉媛',x:'發放禮袋餐盒'},
+ {s:'L',p:'美媛',x:'發放禮袋餐盒'},
+ {s:'L',p:'于玲',x:'發放禮袋餐盒'},
+ /* M 10:00- */
+ {s:'M',p:'慧龍',x:'展區導覽與體驗關卡調度全場'},
+ {s:'M',p:'小汶',x:'記者會區場復指揮：椅子、講台、道具收整'},
+ {s:'M',p:'穎綺',x:'協助記者會區物品歸位、剩餘禮袋清點'},
+ {s:'M',p:'庭安',x:'協助記者會區物品歸位、剩餘禮袋清點'}
+];
+/* ================= 資料區結束 ================= */
+
+var state={mode:'slot',sel:'ALL',editing:false,log:[]};
+TASKS.forEach(function(t,i){t.id=i+1;t.edited=false;});
+var nextId=TASKS.length+1;
+var TEAM={};PEOPLE.forEach(function(p){TEAM[p.n]=p.tm;});
+var NAMEPAT=new RegExp('('+PEOPLE.map(function(p){return p.n;}).join('|')+'|文綺)(帶)?','g');
+
+var $=function(id){return document.getElementById(id);};
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
+function mark(s){ /* 文字中的人名自動上色 */
+  return esc(s).replace(NAMEPAT,function(m,name){
+    var tm=TEAM[name]||'min';
+    return '<span class="xl-nm-'+tm+'">'+m+'</span>';
+  });
+}
+function slotById(id){for(var i=0;i<SLOTS.length;i++)if(SLOTS[i].id===id)return SLOTS[i];return null;}
+function nowStr(){var d=new Date();return('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);}
+function photoBadge(s){return s.photo?'<span class="xl-badge-photo">📸 '+esc(s.photo)+'</span>':'';}
+
+function renderChips(){
+  var h='';
+  if(state.mode==='slot'){
+    h+='<div class="xl-chip'+(state.sel==='ALL'?' xl-on':'')+'" data-v="ALL">全部</div>';
+    SLOTS.forEach(function(s){
+      h+='<div class="xl-chip'+(s.photo?' xl-photo-chip':'')+(state.sel===s.id?' xl-on':'')+'" data-v="'+s.id+'">'+(s.photo?'📸':'')+s.t+'</div>';
+    });
+  }else if(state.mode==='person'){
+    PEOPLE.forEach(function(p,i){
+      if(i>0&&p.tm==='gov'&&PEOPLE[i-1].tm==='min')h+='<div class="xl-divider">｜衛生局→</div>';
+      h+='<div class="xl-chip xl-c-'+p.tm+(state.sel===p.n?' xl-on':'')+'" data-v="'+p.n+'">'+p.n+'</div>';
+    });
+  }
+  $('xlChips').innerHTML=h;
+  $('xlChips').style.display=(state.mode==='log')?'none':'flex';
+}
+
+function taskRow(t){
+  return '<div class="xl-task'+(t.edited?' xl-edited':'')+'"><div class="xl-who"><span class="xl-nm-'+(TEAM[t.p]||'min')+'">'+esc(t.p)+'</span></div>'+
+    '<div class="xl-what">'+mark(t.x)+'</div>'+
+    '<button class="xl-editbtn" data-edit="'+t.id+'">改</button></div>';
+}
+
+function renderMain(){
+  var h='';
+  if(state.mode==='slot'){
+    var list=(state.sel==='ALL')?SLOTS:[slotById(state.sel)];
+    list.forEach(function(s){
+      var mins=TASKS.filter(function(t){return t.s===s.id&&TEAM[t.p]==='min';});
+      var govs=TASKS.filter(function(t){return t.s===s.id&&TEAM[t.p]==='gov';});
+      h+='<div class="xl-slot'+(s.photo?' xl-isphoto':'')+'"><div class="xl-slot-h"><span class="xl-time">'+s.t+'</span><span class="xl-title">'+esc(s.title)+'</span>'+photoBadge(s)+'</div>';
+      if(mins.length){h+='<div class="xl-sect xl-s-min">敏逆</div>'+mins.map(taskRow).join('');}
+      if(govs.length){h+='<div class="xl-sect xl-s-gov">衛生局</div>'+govs.map(taskRow).join('');}
+      if(!mins.length&&!govs.length)h+='<div class="xl-empty">此時段無指派</div>';
+      if(state.editing)h+='<div class="xl-task"><div class="xl-who"></div><div class="xl-what"></div><button class="xl-editbtn" data-add="'+s.id+'" style="display:block">＋加任務</button></div>';
+      if(s.note)h+='<div class="xl-note">📌 '+mark(s.note)+'</div>';
+      h+='</div>';
+    });
+  }else if(state.mode==='person'){
+    var p=null;PEOPLE.forEach(function(q){if(q.n===state.sel)p=q;});
+    if(!p){h='<div class="xl-empty">請在上方選一個人（黃＝敏逆、藍＝衛生局）</div>';}
+    else{
+      h+='<div class="xl-pcard"><span class="xl-pname xl-t-'+p.tm+'">'+esc(p.n)+'</span><div class="xl-prole">'+esc(p.r)+'</div>';
+      SLOTS.forEach(function(s){
+        var mine=TASKS.filter(function(t){return t.s===s.id&&t.p===p.n;});
+        var others=[];var seen={};
+        TASKS.forEach(function(t){
+          if(t.s===s.id&&TEAM[t.p]!==p.tm&&!seen[t.p]){seen[t.p]=1;others.push(t.p);}
+        });
+        var mateLine=others.length?'<div class="xl-mate">同時段'+(p.tm==='min'?'衛生局':'敏逆')+'：'+others.map(function(n){return '<span class="xl-nm-'+TEAM[n]+'">'+esc(n)+'</span>';}).join('、')+'</div>':'';
+        h+='<div class="xl-prow'+(s.photo?' xl-isphoto':'')+'"><div class="xl-ptime">'+s.t+'</div><div class="xl-ptxt">';
+        if(mine.length){
+          h+=mine.map(function(t){return mark(t.x)+(t.edited?'<span style="color:#c0392b;font-size:11px;font-weight:700">（已更動）</span>':'');}).join('<br>');
+        }else{
+          h+='<span class="xl-watch"><b>此時段無指派｜可留意：</b>'+esc(s.watch||'支援現場')+'</span>';
+        }
+        h+='<div class="xl-pslot">'+esc(s.title)+(s.photo?' 📸'+esc(s.photo):'')+'</div>'+mateLine+'</div>';
+        if(state.editing&&mine.length)h+='<button class="xl-editbtn" style="display:block" data-edit="'+mine[0].id+'">改</button>';
+        h+='</div>';
+      });
+      h+='</div>';
+    }
+  }else{
+    h+='<div class="xl-log"><h3>變更紀錄（本機，匯出通報後貼群組）</h3>';
+    h+=state.log.length?state.log.map(function(l){return '<div class="xl-logitem"><b>'+l.t+'</b>｜'+esc(l.m)+'</div>';}).join(''):'<div class="xl-empty">尚無變更</div>';
+    h+='</div>';
+  }
+  $('xlMain').innerHTML=h;
+}
+
+function render(){renderChips();renderMain();
+  document.getElementById('xlApp').classList.toggle('xl-editing',state.editing);
+  $('xlBtnEdit').textContent=state.editing?'✔ 完成編輯':'✎ 進入編輯';
+}
+
+/* ---- 編輯 modal ---- */
+function openModal(taskId,addSlot){
+  var t=null;if(taskId)TASKS.forEach(function(q){if(q.id===taskId)t=q;});
+  var slotOpts=SLOTS.map(function(s){return '<option value="'+s.id+'"'+((t?t.s:addSlot)===s.id?' selected':'')+'>'+s.t+' '+esc(s.title)+'</option>';}).join('');
+  var minOpts='',govOpts='';
+  PEOPLE.forEach(function(p){
+    var o='<option value="'+p.n+'"'+(t&&t.p===p.n?' selected':'')+'>'+p.n+'</option>';
+    if(p.tm==='min')minOpts+=o;else govOpts+=o;
+  });
+  var h='<h3>'+(t?'修改任務':'新增任務')+'</h3>'+
+    '<label>時段</label><select id="xlFs">'+slotOpts+'</select>'+
+    '<label>負責人</label><select id="xlFp"><optgroup label="敏逆">'+minOpts+'</optgroup><optgroup label="衛生局">'+govOpts+'</optgroup></select>'+
+    '<label>工作內容</label><textarea id="xlFx">'+(t?esc(t.x):'')+'</textarea>'+
+    '<div class="xl-mbtns">'+(t?'<button class="xl-del" id="xlFdel">刪除</button>':'')+
+    '<button id="xlFcancel">取消</button><button class="xl-save" id="xlFsave">儲存</button></div>';
+  $('xlModal').innerHTML=h;$('xlMask').classList.add('xl-show');
+  $('xlFcancel').onclick=function(){$('xlMask').classList.remove('xl-show');};
+  $('xlFsave').onclick=function(){
+    var s=$('xlFs').value,pn=$('xlFp').value,x=$('xlFx').value.trim();
+    if(!x){$('xlFx').style.borderColor='#c0392b';return;}
+    var st=slotById(s);
+    if(t){
+      var msg='【改】'+st.t+' '+pn+'：'+x+(t.p!==pn?'（原：'+t.p+'）':'');
+      t.s=s;t.p=pn;t.x=x;t.edited=true;
+      state.log.unshift({t:nowStr(),m:msg});
+    }else{
+      TASKS.push({id:nextId++,s:s,p:pn,x:x,edited:true});
+      state.log.unshift({t:nowStr(),m:'【加】'+st.t+' '+pn+'：'+x});
+    }
+    $('xlMask').classList.remove('xl-show');render();
+  };
+  if(t){$('xlFdel').onclick=function(){
+    var st=slotById(t.s);
+    state.log.unshift({t:nowStr(),m:'【刪】'+st.t+' '+t.p+'：'+t.x});
+    TASKS.splice(TASKS.indexOf(t),1);
+    $('xlMask').classList.remove('xl-show');render();
+  };}
+}
+
+/* ---- 通報 / 備份 ---- */
+function openReport(){
+  var lines=state.log.slice().reverse().map(function(l){return l.t+' '+l.m;});
+  var txt=lines.length?('📢 細流異動通報（'+nowStr()+' 發布）\n'+lines.join('\n')+'\n—— 以此通報為準，收到請回 1'):'目前沒有任何變更。';
+  var h='<h3>變更通報（複製貼到工作群）</h3><textarea class="xl-io" id="xlRtxt">'+esc(txt)+'</textarea>'+
+    '<div class="xl-mbtns"><button id="xlFcancel">關閉</button><button class="xl-save" id="xlRcopy">複製文字</button></div>'+
+    '<div class="xl-hint">同步原則：只有一台裝置（副指揮）能改，其他人只收群組通報。改完立刻發通報＋對講機廣播，就不會版本不同步。</div>';
+  $('xlModal').innerHTML=h;$('xlMask').classList.add('xl-show');
+  $('xlFcancel').onclick=function(){$('xlMask').classList.remove('xl-show');};
+  $('xlRcopy').onclick=function(){
+    var ta=$('xlRtxt');ta.select();ta.setSelectionRange(0,999999);
+    try{document.execCommand('copy');$('xlRcopy').textContent='已複製 ✔';}catch(e){$('xlRcopy').textContent='請長按手動複製';}
+  };
+}
+function openIO(){
+  var data=JSON.stringify({tasks:TASKS,log:state.log});
+  var h='<h3>備份 / 還原</h3><label>目前資料（複製保存；換裝置時貼回並按還原）</label>'+
+    '<textarea class="xl-io" id="xlIOtxt">'+esc(data)+'</textarea>'+
+    '<div class="xl-mbtns"><button id="xlFcancel">關閉</button><button class="xl-save" id="xlIOload">用上面內容還原</button></div>'+
+    '<div class="xl-hint">注意：關閉或重新整理頁面後，未備份的變更會消失（本頁刻意不用雲端或本機儲存，避免多裝置版本混亂）。重大改動請先按「產生變更通報」發到群組。</div>';
+  $('xlModal').innerHTML=h;$('xlMask').classList.add('xl-show');
+  $('xlFcancel').onclick=function(){$('xlMask').classList.remove('xl-show');};
+  $('xlIOload').onclick=function(){
+    try{
+      var d=JSON.parse($('xlIOtxt').value);
+      if(d&&d.tasks){TASKS.length=0;d.tasks.forEach(function(t){TASKS.push(t);});
+        state.log=d.log||[];nextId=TASKS.reduce(function(m,t){return Math.max(m,t.id||0);},0)+1;
+        $('xlMask').classList.remove('xl-show');render();}
+    }catch(e){$('xlIOload').textContent='格式錯誤，請確認 JSON';}
+  };
+}
+
+/* ---- 事件 ---- */
+$('xlModeSlot').onclick=function(){state.mode='slot';state.sel='ALL';setMode();};
+$('xlModePerson').onclick=function(){state.mode='person';state.sel=PEOPLE[0].n;setMode();};
+$('xlModeLog').onclick=function(){state.mode='log';setMode();};
+function setMode(){
+  ['xlModeSlot','xlModePerson','xlModeLog'].forEach(function(id){$(id).classList.remove('xl-on');});
+  $(state.mode==='slot'?'xlModeSlot':state.mode==='person'?'xlModePerson':'xlModeLog').classList.add('xl-on');
+  render();
+}
+$('xlChips').onclick=function(e){
+  var el=e.target.closest?e.target.closest('[data-v]'):e.target;
+  var v=el&&el.getAttribute?el.getAttribute('data-v'):null;
+  if(v){state.sel=v;render();}
+};
+$('xlMain').onclick=function(e){
+  var ed=e.target.getAttribute&&e.target.getAttribute('data-edit');
+  var ad=e.target.getAttribute&&e.target.getAttribute('data-add');
+  if(ed)openModal(parseInt(ed,10),null);
+  else if(ad)openModal(null,ad);
+};
+$('xlBtnEdit').onclick=function(){state.editing=!state.editing;render();};
+$('xlBtnReport').onclick=openReport;
+$('xlBtnIO').onclick=openIO;
+$('xlMask').onclick=function(e){if(e.target===$('xlMask'))$('xlMask').classList.remove('xl-show');};
+
+render();
+})();
+</script>
+</body>
+</html>
